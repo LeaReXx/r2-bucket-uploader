@@ -13,26 +13,27 @@ export default function Home() {
     if (selectedFile) {
       uploadFile(selectedFile);
     } else {
-      console.error("No file selected for upload.");
+      alert("No file selected for upload!");
     }
   };
 
-  const startUpload = async (file: File) => {
+  const startUpload = async (
+    file: File
+  ): Promise<{ uploadId: string; key: string }> => {
+    const formData = new FormData();
+    formData.append("fileName", file.name);
+    formData.append("fileType", file.type);
+    formData.append("endPoint", "create-multipart-upload");
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/upload`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          endpoint: "create-multipart-upload",
-          file: { name: file.name },
-          contentType: file.type,
-        }),
+        body: formData,
       }
     );
     const data = await response.json();
+    console.log(data);
+
     return data; // { uploadId, key }
   };
 
@@ -40,8 +41,8 @@ export default function Home() {
     file: File,
     uploadId: string,
     key: string,
-    onProgress: (progress: number) => void // تابع callback برای به‌روزرسانی پیشرفت
-  ) => {
+    onProgress: (progress: number) => void
+  ): Promise<{ ETag: string; PartNumber: number }[]> => {
     const chunkSize = 5 * 1024 * 1024; // 5MB
     const totalChunks = Math.ceil(file.size / chunkSize);
     const parts = [];
@@ -50,38 +51,29 @@ export default function Home() {
       const chunk = file.slice(i * chunkSize, (i + 1) * chunkSize);
       const partNumber = i + 1;
 
-      // دریافت URL امضا شده برای آپلود پارت
-      const signResponse = await fetch(
+      const formData = new FormData();
+      formData.append("chunk", chunk);
+      formData.append("uploadId", uploadId);
+      formData.append("key", key);
+      formData.append("partNumber", partNumber.toString());
+      formData.append("endPoint", "upload-part");
+      const uploadResponse = await fetch(
         `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/upload`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            endpoint: "sign-part",
-            key,
-            uploadId,
-            partNumber,
-          }),
+          body: formData,
         }
       );
-      const { url } = await signResponse.json();
 
-      // آپلود پارت
-      const uploadResponse = await fetch(url, {
-        method: "PUT",
-        body: chunk,
-      });
-      const etag = uploadResponse.headers.get("ETag");
+      const responseData = await uploadResponse.json();
+      console.log("response =>", responseData);
 
-      if (etag) {
-        parts.push({ ETag: etag, PartNumber: partNumber });
+      if (responseData.etag) {
+        parts.push({ ETag: responseData.etag, PartNumber: partNumber });
       }
 
-      // محاسبه درصد پیشرفت
       const progress = Math.round((partNumber / totalChunks) * 100);
-      onProgress(progress); // ارسال درصد پیشرفت به تابع callback
+      onProgress(progress);
     }
 
     return parts;
@@ -90,41 +82,37 @@ export default function Home() {
   const completeUpload = async (
     uploadId: string,
     key: string,
-    parts: any[]
-  ) => {
+    parts: { ETag: string; PartNumber: number }[]
+  ): Promise<{ location: string }> => {
+    const formData = new FormData();
+    console.log(parts);
+
+    formData.append("key", key);
+    formData.append("uploadId", uploadId);
+    formData.append("parts", JSON.stringify(parts));
+    formData.append("endPoint", "complete-multipart-upload");
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/upload`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          endpoint: "complete-multipart-upload",
-          key,
-          uploadId,
-          parts,
-        }),
+        body: formData,
       }
     );
     const data = await response.json();
     return data;
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File): Promise<void> => {
     try {
-      // شروع آپلود
       const { uploadId, key } = await startUpload(file);
 
-      // آپلود پارت‌ها با ردیابی پیشرفت
       const parts = await uploadParts(file, uploadId, key, (progress) => {
         console.log(`پیشرفت آپلود: ${progress}%`);
-        // می‌توانید این مقدار را در UI نمایش دهید (مثلاً با یک نوار پیشرفت)
       });
+      console.log(parts);
 
-      // تکمیل آپلود
       const result = await completeUpload(uploadId, key, parts);
-      console.log("آپلود با موفقیت انجام شد:", result);
+      console.log(result);
     } catch (error) {
       console.error("خطا در آپلود فایل:", error);
     }

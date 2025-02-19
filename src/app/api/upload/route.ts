@@ -1,48 +1,32 @@
 import {
   UploadPartCommand,
   S3Client,
-  ListPartsCommand,
   CreateMultipartUploadCommand,
   CompleteMultipartUploadCommand,
   AbortMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
-const {
-  R2_ENDPOINT,
-  R2_ACCESS_KEY,
-  R2_SECRET_KEY,
-  R2_BUCKET_NAME,
-} = process.env;
 
 const R2 = new S3Client({
   region: "auto",
-  endpoint: R2_ENDPOINT,
+  endpoint: process.env.R2_ENDPOINT,
   credentials: {
-    accessKeyId: R2_ACCESS_KEY as string,
-    secretAccessKey: R2_SECRET_KEY as string,
+    accessKeyId: process.env.R2_ACCESS_KEY as string,
+    secretAccessKey: process.env.R2_SECRET_KEY as string,
   },
 });
-export async function POST(request: Request) {
-  // خواندن بدنه درخواست یک بار
-  const body = await request.json();
-  const { endpoint } = body;
+export async function POST(request: Request): Promise<Response> {
+  const formData = await request.formData();
+  const endpoint = formData.get("endPoint");
 
   switch (endpoint) {
     case "create-multipart-upload":
-      return createMultipartUpload(body);
-    case "prepare-upload-parts":
-      return prepareUploadParts(body);
+      return createMultipartUpload(formData);
     case "complete-multipart-upload":
-      return completeMultipartUpload(body);
-    case "list-parts":
-      return listParts(body);
+      return completeMultipartUpload(formData);
     case "abort-multipart-upload":
-      return abortMultipartUpload(body);
-    case "sign-part":
-      return signPart(body);
+      return abortMultipartUpload(formData);
     case "upload-part":
-      return uploadPart(body);
+      return uploadPart(formData);
     default:
       return new Response(JSON.stringify({ error: "Endpoint not found" }), {
         status: 404,
@@ -50,19 +34,20 @@ export async function POST(request: Request) {
   }
 }
 
-async function createMultipartUpload(body: any) {
-  const { file, contentType } = body;
-  const filename = file.name;
+async function createMultipartUpload(formData: FormData): Promise<Response> {
+  const fileName = formData.get("fileName") as string;
+  const fileType = formData.get("fileType") as string;
 
   try {
     const params = {
-      Bucket: R2_BUCKET_NAME,
-      Key: filename,
-      ContentType: contentType,
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: fileName,
+      ContentType: fileType,
     };
 
     const command = new CreateMultipartUploadCommand({ ...params });
     const response = await R2.send(command);
+
     return new Response(
       JSON.stringify({
         uploadId: response.UploadId,
@@ -71,72 +56,21 @@ async function createMultipartUpload(body: any) {
       { status: 200 }
     );
   } catch (err) {
-    console.log("Error", err);
+    console.log("Error From Create Multipart Upload => ", err);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
     });
   }
 }
 
-async function prepareUploadParts(body: any) {
-  const { partData } = body;
-  const parts = partData.parts;
-
-  const response: { presignedUrls: { [key: string]: string } } = {
-    presignedUrls: {},
-  };
-
-  for (let part of parts) {
-    try {
-      const params = {
-        Bucket: R2_BUCKET_NAME,
-        Key: partData.key,
-        PartNumber: part.number,
-        UploadId: partData.uploadId,
-      };
-      const command = new UploadPartCommand({ ...params });
-      const url = await getSignedUrl(R2, command, { expiresIn: 3600 });
-
-      response.presignedUrls[part.number] = url;
-    } catch (err) {
-      console.log("Error", err);
-      return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-        status: 500,
-      });
-    }
-  }
-
-  return new Response(JSON.stringify(response), { status: 200 });
-}
-
-async function listParts(body: any) {
-  const { key, uploadId } = body;
+async function completeMultipartUpload(formData: FormData): Promise<Response> {
+  const key = formData.get("key") as string;
+  const uploadId = formData.get("uploadId") as string;
+  const parts = JSON.parse(formData.get("parts") as string);
 
   try {
     const params = {
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-      UploadId: uploadId,
-    };
-    const command = new ListPartsCommand({ ...params });
-    const response = await R2.send(command);
-
-    return new Response(JSON.stringify(response["Parts"]), { status: 200 });
-  } catch (err) {
-    console.log("Error", err);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-    });
-  }
-}
-
-async function completeMultipartUpload(body: any) {
-  const { key, uploadId, parts } = body;
-  console.log(body);
-
-  try {
-    const params = {
-      Bucket: R2_BUCKET_NAME,
+      Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       UploadId: uploadId,
       MultipartUpload: { Parts: parts },
@@ -152,12 +86,13 @@ async function completeMultipartUpload(body: any) {
   }
 }
 
-async function abortMultipartUpload(body: any) {
-  const { key, uploadId } = body;
+async function abortMultipartUpload(formData: FormData): Promise<Response> {
+  const key = formData.get("key") as string;
+  const uploadId = formData.get("uploadId") as string;
 
   try {
     const params = {
-      Bucket: R2_BUCKET_NAME,
+      Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       UploadId: uploadId,
     };
@@ -173,40 +108,34 @@ async function abortMultipartUpload(body: any) {
   }
 }
 
-async function signPart(body: any) {
-  const { key, uploadId, partNumber } = body;
+async function uploadPart(formData: FormData): Promise<Response> {
+  console.log(formData);
 
-  const params = {
-    Bucket: R2_BUCKET_NAME,
-    Key: key,
-    PartNumber: partNumber,
-    UploadId: uploadId,
-  };
-
-  const command = new UploadPartCommand({ ...params });
-  const url = await getSignedUrl(R2, command, { expiresIn: 3600 });
-  return new Response(JSON.stringify({ url }), { status: 200 });
-}
-
-async function uploadPart(body: any) {
-  const { key, uploadId, partNumber, chunk } = body;
+  const key = formData.get("key") as string;
+  const uploadId = formData.get("uploadId") as string;
+  const partNumber = Number(formData.get("partNumber")) as number;
+  const chunk = formData.get("chunk") as File;
 
   try {
+    const arrayBuffer = await chunk.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     const params = {
-      Bucket: R2_BUCKET_NAME,
+      Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       PartNumber: partNumber,
       UploadId: uploadId,
-      Body: Buffer.from(chunk),
+      Body: buffer,
     };
 
     const command = new UploadPartCommand({ ...params });
     const response = await R2.send(command);
+
     return new Response(JSON.stringify({ etag: response.ETag }), {
       status: 200,
     });
   } catch (err) {
-    console.log("Error", err);
+    console.log("Error From Uploadpart => ", err);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
     });

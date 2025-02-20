@@ -13,10 +13,10 @@ const DragAndDrop = () => {
   return (
     <div
       {...getRootProps()}
-      className={`w-10/12 max-w-[700px] h-[300px] flex items-center justify-center text-white  mx-auto rounded-lg py-4 px-2 cursor-pointer border-dashed border-2 duration-150 ${
+      className={`w-10/12 max-w-[700px] h-[350px] flex items-center justify-center text-white border-white mx-auto rounded-lg py-4 px-2 cursor-pointer border-dashed border-2 duration-150 ${
         isDragActive
-          ? "border-gray-200 bg-white/20"
-          : "border-gray-400 bg-white/10"
+          ? "border-opacity-90 bg-white/20 backdrop-blur-[2px]"
+          : "border-opacity-50 bg-white/10 backdrop-blur-[1px]"
       }`}
     >
       <input {...getInputProps()} />
@@ -37,7 +37,7 @@ const DragAndDrop = () => {
           <div>
             <p>Drag or Drop file(s) here</p>
             <p className="text-sm my-2 text-opacity-80 text-white">or</p>
-            <p className="py-1 bg-black/90 hover:bg-black duration-150 w-fit mx-auto px-2 rounded-md font-light">
+            <p className="py-1 bg-black/80 hover:bg-black shadow-sm duration-150 w-fit mx-auto px-2 rounded-md font-light">
               Browse file(s)
             </p>
           </div>

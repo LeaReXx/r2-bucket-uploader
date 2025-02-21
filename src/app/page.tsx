@@ -1,18 +1,28 @@
 "use client";
 import DragAndDrop from "@/components/DragAndDrop";
-import UploadQueue from "@/components/UploadQueue";
-import { useState } from "react";
+import UploadPending from "@/components/UploadPending";
+import { useCallback, useEffect, useState } from "react";
+
+export type UploadPendingItemType = {
+  uploadId: string;
+  fileName: string;
+  size: number;
+  status: "uploading" | "completed";
+  path?: string;
+};
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File[] | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<
+    UploadPendingItemType[] | null
+  >(null);
 
-  const handleUpload = () => {
-    if (selectedFile) {
-      uploadFile(selectedFile);
-    } else {
-      alert("No file selected for upload!");
-    }
-  };
+  const handleUpload = useCallback(() => {
+    selectedFile?.forEach((file: File) => {
+      uploadFile(file);
+      setSelectedFile((prev) => (prev ? prev.filter((f) => f !== file) : null));
+    });
+  }, [selectedFile]);
 
   const startUpload = async (
     file: File
@@ -78,7 +88,7 @@ export default function Home() {
     uploadId: string,
     key: string,
     parts: { ETag: string; PartNumber: number }[]
-  ): Promise<{ location: string }> => {
+  ): Promise<{ Location: string }> => {
     const formData = new FormData();
 
     formData.append("key", key);
@@ -99,21 +109,45 @@ export default function Home() {
   const uploadFile = async (file: File): Promise<void> => {
     try {
       const { uploadId, key } = await startUpload(file);
-
+      setPendingUpload((prev) => [
+        ...(prev ?? []),
+        {
+          uploadId,
+          fileName: file.name,
+          size: file.size,
+          path: "",
+          status: "uploading",
+        },
+      ]);
       const parts = await uploadParts(file, uploadId, key, (progress) => {
-        console.log(`پیشرفت آپلود: ${progress}%`);
+        console.log(`Upload Progress: ${progress}%`);
       });
 
       const result = await completeUpload(uploadId, key, parts);
+
+      setPendingUpload(
+        (prev) =>
+          prev?.map((item) =>
+            item.uploadId === uploadId
+              ? { ...item, status: "completed", path: result.Location }
+              : item
+          ) ?? []
+      );
     } catch (error) {
       console.error("خطا در آپلود فایل:", error);
     }
   };
-
+  useEffect(() => {
+    if (selectedFile?.length) {
+      handleUpload();
+    }
+  }, [selectedFile]);
   return (
     <div className="mt-24 w-10/12 max-w-[700px] mx-auto">
       <DragAndDrop setSelectedFile={setSelectedFile} />
-      <UploadQueue selectedFile={selectedFile} />
+      <div className="mt-4">
+        <UploadPending pendingUpload={pendingUpload} />
+      </div>
     </div>
   );
 }

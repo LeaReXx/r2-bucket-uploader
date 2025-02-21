@@ -1,19 +1,25 @@
 import Image from "next/image";
-import React, { useCallback } from "react";
+import React, { Dispatch, SetStateAction, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 
-const DragAndDrop = () => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log(acceptedFiles);
-    return acceptedFiles;
-  }, []);
+const DragAndDrop = ({
+  setSelectedFile,
+}: {
+  setSelectedFile: Dispatch<SetStateAction<File[] | null>>;
+}) => {
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      setSelectedFile((prev) => [...(prev ?? []), ...acceptedFiles]);
+    },
+    [setSelectedFile]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
     <div
       {...getRootProps()}
-      className={`w-10/12 max-w-[700px] h-[350px] flex items-center justify-center text-white border-white mx-auto rounded-lg py-4 px-2 cursor-pointer border-dashed border-2 duration-150 ${
+      className={`flex items-center justify-center text-white border-white rounded-lg py-4 px-2 cursor-pointer border-dashed border-2 duration-150 ${
         isDragActive
           ? "border-opacity-90 bg-white/20 backdrop-blur-[2px]"
           : "border-opacity-50 bg-white/10 backdrop-blur-[1px]"

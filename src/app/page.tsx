@@ -1,5 +1,6 @@
 "use client";
 import DragAndDrop from "@/components/DragAndDrop";
+import UploadQueue from "@/components/UploadQueue";
 import { useState } from "react";
 
 export default function Home() {
@@ -112,6 +113,7 @@ export default function Home() {
   return (
     <div className="mt-24 w-10/12 max-w-[700px] mx-auto">
       <DragAndDrop setSelectedFile={setSelectedFile} />
+      <UploadQueue selectedFile={selectedFile} />
     </div>
   );
 }

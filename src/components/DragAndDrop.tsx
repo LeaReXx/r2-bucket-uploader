@@ -19,7 +19,7 @@ const DragAndDrop = ({
   return (
     <div
       {...getRootProps()}
-      className={`flex items-center justify-center text-white border-white rounded-lg py-4 px-2 cursor-pointer border-dashed border-2 duration-150 ${
+      className={`flex items-center h-[350px] justify-center text-white border-white mx-auto rounded-lg py-4 px-2 cursor-pointer border-dashed border-2 duration-150 ${
         isDragActive
           ? "border-opacity-90 bg-white/20 backdrop-blur-[2px]"
           : "border-opacity-50 bg-white/10 backdrop-blur-[1px]"

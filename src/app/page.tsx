@@ -110,7 +110,7 @@ export default function Home() {
   };
 
   return (
-    <div className="mt-24 w-10/12 max-w-[700px] h-[350px] mx-auto">
+    <div className="mt-24 w-10/12 max-w-[700px] mx-auto">
       <DragAndDrop setSelectedFile={setSelectedFile} />
     </div>
   );

@@ -7,10 +7,10 @@ const UploadQueue = ({ selectedFile }: { selectedFile: File[] | null }) => {
         selectedFile.map((file, index) => (
           <div
             key={index}
-            className="bg-gradient-to-r from-gray-900/50 to-gray-900/10 backdrop-blur-[1px] text-sm flex flex-col items-center gap-2 sm:gap-0 sm:flex-row justify-between rounded-md py-2 px-2 text-white"
+            className="bg-gradient-to-r from-gray-900/50 to-gray-900/10 backdrop-blur-[1px] text-sm flex flex-col sm:items-center gap-2 sm:gap-0 sm:flex-row justify-between rounded-md py-2 px-2 text-white"
           >
             <div>
-              <p className="truncate w-[250px]">{file.name}</p>
+              <p className="truncate w-[250px] md:w-[450px]">{file.name}</p>
             </div>
             <div className="flex justify-between items-center sm:gap-5">
               <span>{formatFileSize(file.size)}</span>

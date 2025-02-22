@@ -1,7 +1,20 @@
 {
-  "name": "nextjs-test",
+  "name": "r2-bucket-uploader",
   "version": "0.1.0",
   "private": true,
+  "description": "Cloudflare R2 multipart File Uploader to bucket, Demo example for NextJS 15",
+  "homepage": "https://github.com/LeaReXx/upload-r2-bucket#readme",
+  "bugs": {
+    "url": "https://github.com/LeaReXx/upload-r2-bucket/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeaReXx/upload-r2-bucket.git"
+  },
+  "license": "MIT",
+  "author": "Sepehr Aghapour",
+  "type": "commonjs",
+  "main": "index.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

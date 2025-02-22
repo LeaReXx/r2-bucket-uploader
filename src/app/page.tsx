@@ -31,14 +31,12 @@ export default function Home() {
     formData.append("fileName", file.name);
     formData.append("fileType", file.type);
     formData.append("endPoint", "create-multipart-upload");
-    const response = await fetch(
-      `/api/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const response = await fetch(`/api/upload`, {
+      method: "POST",
+      body: formData,
+    });
     const data = await response.json();
+    console.log(data);
 
     return data; // { uploadId, key }
   };
@@ -63,13 +61,10 @@ export default function Home() {
       formData.append("key", key);
       formData.append("partNumber", partNumber.toString());
       formData.append("endPoint", "upload-part");
-      const uploadResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const uploadResponse = await fetch(`/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
       const responseData = await uploadResponse.json();
 
@@ -95,13 +90,10 @@ export default function Home() {
     formData.append("uploadId", uploadId);
     formData.append("parts", JSON.stringify(parts));
     formData.append("endPoint", "complete-multipart-upload");
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const response = await fetch(`/api/upload`, {
+      method: "POST",
+      body: formData,
+    });
     const data = await response.json();
     return data;
   };
@@ -109,6 +101,7 @@ export default function Home() {
   const uploadFile = async (file: File): Promise<void> => {
     try {
       const { uploadId, key } = await startUpload(file);
+
       setPendingUpload((prev) => [
         ...(prev ?? []),
         {

@@ -63,3 +63,11 @@ Create the following CORS settings in order to make the upload components work w
 ```
 
 Optionally, to increase security you can also customize the `AllowedOrigins` properties.
+
+### Run
+
+Run the development server
+
+```bash
+npm run dev
+```

@@ -11,7 +11,7 @@ const UploadPending = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 mb-10">
       {pendingUpload &&
         pendingUpload.map((item) => (
           <div

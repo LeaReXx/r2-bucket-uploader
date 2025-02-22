@@ -17,6 +17,7 @@ export default function Home() {
     UploadPendingItemType[] | null
   >(null);
 
+  // Handles the upload process for selected files
   const handleUpload = useCallback(() => {
     selectedFile?.forEach((file: File) => {
       uploadFile(file);
@@ -24,6 +25,7 @@ export default function Home() {
     });
   }, [selectedFile]);
 
+  // Starts the multipart upload process
   const startUpload = async (
     file: File
   ): Promise<{ uploadId: string; key: string }> => {
@@ -43,13 +45,14 @@ export default function Home() {
     return data; // { uploadId, key }
   };
 
+  // Uploads file parts in chunks
   const uploadParts = async (
     file: File,
     uploadId: string,
     key: string,
     onProgress: (progress: number) => void
   ): Promise<{ ETag: string; PartNumber: number }[]> => {
-    const chunkSize = 5 * 1024 * 1024; // 5MB
+    const chunkSize = 5 * 1024 * 1024; // 5MB for each chunk
     const totalChunks = Math.ceil(file.size / chunkSize);
     const parts = [];
 
@@ -85,6 +88,7 @@ export default function Home() {
     return parts;
   };
 
+  // Completes the multipart upload process
   const completeUpload = async (
     uploadId: string,
     key: string,
@@ -107,6 +111,7 @@ export default function Home() {
     return data;
   };
 
+  // Manages the entire file upload process
   const uploadFile = async (file: File): Promise<void> => {
     try {
       const { uploadId, key } = await startUpload(file);
@@ -139,11 +144,14 @@ export default function Home() {
       console.error(error);
     }
   };
+
+  // Triggers the upload process when files are selected
   useEffect(() => {
     if (selectedFile?.length) {
       handleUpload();
     }
   }, [selectedFile]);
+
   return (
     <div className="mt-24 w-10/12 max-w-[700px] mx-auto">
       <DragAndDrop setSelectedFile={setSelectedFile} />

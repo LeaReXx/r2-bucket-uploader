@@ -15,7 +15,7 @@ const R2 = new S3Client({
   },
 });
 
-
+// Checks for required environment variables
 function checkEnvVars(): string | null {
   const requiredEnvVars = ['R2_ENDPOINT', 'R2_ACCESS_KEY', 'R2_SECRET_KEY', 'R2_BUCKET_NAME'];
   const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
@@ -54,6 +54,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 }
 
+// Initiates a multipart upload
 async function createMultipartUpload(formData: FormData): Promise<Response> {
   const fileName = formData.get("fileName") as string;
   const fileType = formData.get("fileType") as string;
@@ -83,6 +84,7 @@ async function createMultipartUpload(formData: FormData): Promise<Response> {
   }
 }
 
+// Completes a multipart upload
 async function completeMultipartUpload(formData: FormData): Promise<Response> {
   const key = formData.get("key") as string;
   const uploadId = formData.get("uploadId") as string;
@@ -107,6 +109,7 @@ async function completeMultipartUpload(formData: FormData): Promise<Response> {
   }
 }
 
+// Aborts a multipart upload
 async function abortMultipartUpload(formData: FormData): Promise<Response> {
   const key = formData.get("key") as string;
   const uploadId = formData.get("uploadId") as string;
@@ -129,6 +132,7 @@ async function abortMultipartUpload(formData: FormData): Promise<Response> {
   }
 }
 
+// Uploads a part of a file
 async function uploadPart(formData: FormData): Promise<Response> {
   const key = formData.get("key") as string;
   const uploadId = formData.get("uploadId") as string;

@@ -36,7 +36,9 @@ export default function Home() {
       body: formData,
     });
     const data = await response.json();
-    console.log(data);
+    if (data.error) {
+      throw new Error(data.error);
+    }
 
     return data; // { uploadId, key }
   };
@@ -68,6 +70,10 @@ export default function Home() {
 
       const responseData = await uploadResponse.json();
 
+      if (responseData.error) {
+        throw new Error(responseData.error);
+      }
+
       if (responseData.etag) {
         parts.push({ ETag: responseData.etag, PartNumber: partNumber });
       }
@@ -95,6 +101,9 @@ export default function Home() {
       body: formData,
     });
     const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
     return data;
   };
 
@@ -127,7 +136,7 @@ export default function Home() {
           ) ?? []
       );
     } catch (error) {
-      console.error("خطا در آپلود فایل:", error);
+      console.error(error);
     }
   };
   useEffect(() => {

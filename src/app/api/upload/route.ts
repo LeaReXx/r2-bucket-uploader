@@ -14,7 +14,27 @@ const R2 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_KEY as string,
   },
 });
+
+
+function checkEnvVars(): string | null {
+  const requiredEnvVars = ['R2_ENDPOINT', 'R2_ACCESS_KEY', 'R2_SECRET_KEY', 'R2_BUCKET_NAME'];
+  const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+  if (missingEnvVars.length > 0) {
+    return `Missing required environment variables: ${missingEnvVars.join(', ')}`;
+  }
+  return null;
+}
+
 export async function POST(request: Request): Promise<Response> {
+
+  const envError = checkEnvVars();
+  if (envError) {
+    return new Response(JSON.stringify({ error: envError }), {
+      status: 500,
+    });
+  }
+
   const formData = await request.formData();
   const endpoint = formData.get("endPoint");
 
@@ -77,6 +97,7 @@ async function completeMultipartUpload(formData: FormData): Promise<Response> {
     };
     const command = new CompleteMultipartUploadCommand({ ...params });
     const response = await R2.send(command);
+
     return new Response(JSON.stringify(response), { status: 200 });
   } catch (err) {
     console.log("Error", err);
@@ -109,8 +130,6 @@ async function abortMultipartUpload(formData: FormData): Promise<Response> {
 }
 
 async function uploadPart(formData: FormData): Promise<Response> {
-  console.log(formData);
-
   const key = formData.get("key") as string;
   const uploadId = formData.get("uploadId") as string;
   const partNumber = Number(formData.get("partNumber")) as number;

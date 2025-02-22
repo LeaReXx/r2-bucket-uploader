@@ -32,7 +32,7 @@ export default function Home() {
     formData.append("fileType", file.type);
     formData.append("endPoint", "create-multipart-upload");
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/api/upload`,
+      `/api/upload`,
       {
         method: "POST",
         body: formData,

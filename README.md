@@ -1,4 +1,5 @@
-# Cloudflare R2 bucket Multipart File Uploader / NextJs 15
+# Cloudflare R2 bucket Multipart File Uploader <sup>Next JS 15</sup>
+
 
 A minimal and flexible uploader component tailored for Cloudflare R2 bucket. It supports multipart upload and was tested with files up to 1 GB size.
 

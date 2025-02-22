@@ -13,8 +13,6 @@
   },
   "license": "MIT",
   "author": "Sepehr Aghapour",
-  "type": "commonjs",
-  "main": "index.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

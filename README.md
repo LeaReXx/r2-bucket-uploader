@@ -35,9 +35,9 @@ npm install
 In your `.env` file, set the following environment variables:
 
 ```bash
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_KEY_ID=
+R2_ENDPOINT=
+R2_ACCESS_KEY=
+R2_SECRET_KEY=
 R2_BUCKET_NAME=
 ```
 
